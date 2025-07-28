@@ -7,12 +7,12 @@ import os
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
 
-# Database configuration
-db_url = os.getenv("DATABASE_URL")
-if db_url and db_url.startswith("postgres://"):
+# Convert DATABASE_URL to correct format for SQLAlchemy if needed
+db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
+if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///local.db'  # fallback for local dev
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -27,6 +27,16 @@ class User(db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+# Only run create_all() once per app boot
+tables_initialized = False
+
+@app.before_request
+def initialize_tables_once():
+    global tables_initialized
+    if not tables_initialized:
+        db.create_all()
+        tables_initialized = True
+
 # Route: Home
 @app.route('/')
 def home():
@@ -40,7 +50,7 @@ def register():
         password = request.form.get('password').strip()
 
         if not username or not password:
-            flash("Username and password are required.", "danger")
+            flash("Both fields are required.", "danger")
             return redirect(url_for('register'))
 
         if User.query.filter_by(username=username).first():
@@ -63,10 +73,6 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username').strip()
         password = request.form.get('password').strip()
-
-        if not username or not password:
-            flash("Username and password are required.", "danger")
-            return redirect(url_for('login'))
 
         user = User.query.filter_by(username=username).first()
         if not user:
@@ -99,11 +105,6 @@ def logout():
     session.pop('user', None)
     flash('Logged out successfully.', 'info')
     return redirect(url_for('login'))
-
-# Database initializer (runs once per app boot)
-@app.before_first_request
-def initialize_database():
-    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True)

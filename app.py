@@ -7,14 +7,18 @@ import os
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
 
-# Database configuration using DATABASE_URL from Render
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
+# Database configuration
+db_url = os.getenv("DATABASE_URL")
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///local.db'  # fallback for local dev
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 ph = PasswordHasher()
 
-# Define User model
+# User model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -32,11 +36,14 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username').strip()
+        password = request.form.get('password').strip()
 
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
+        if not username or not password:
+            flash("Username and password are required.", "danger")
+            return redirect(url_for('register'))
+
+        if User.query.filter_by(username=username).first():
             flash('Username already exists. Please choose another.', 'warning')
             return redirect(url_for('register'))
 
@@ -54,8 +61,12 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get('username').strip()
+        password = request.form.get('password').strip()
+
+        if not username or not password:
+            flash("Username and password are required.", "danger")
+            return redirect(url_for('login'))
 
         user = User.query.filter_by(username=username).first()
         if not user:
@@ -69,7 +80,8 @@ def login():
                 return redirect(url_for('dashboard'))
         except VerifyMismatchError:
             flash('Incorrect password.', 'danger')
-            return redirect(url_for('login'))
+
+        return redirect(url_for('login'))
 
     return render_template('login.html')
 
@@ -88,12 +100,10 @@ def logout():
     flash('Logged out successfully.', 'info')
     return redirect(url_for('login'))
 
-# Compatible replacement for @app.before_first_request
-@app.before_request
-def create_tables_once():
-    if not hasattr(app, 'db_initialized'):
-        db.create_all()
-        app.db_initialized = True
+# Database initializer (runs once per app boot)
+@app.before_first_request
+def initialize_database():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True)

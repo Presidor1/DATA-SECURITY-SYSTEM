@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -18,16 +19,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 ph = PasswordHasher()
 
-# User model
+# ================== Models =====================
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
 
-    def __repr__(self):
-        return f'<User {self.username}>'
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Only run create_all() once per app boot
+class Upload(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    filename = db.Column(db.String(120), nullable=False)
+    upload_time = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Run create_all() only once
 tables_initialized = False
 
 @app.before_request
@@ -37,12 +48,12 @@ def initialize_tables_once():
         db.create_all()
         tables_initialized = True
 
-# Route: Home
+# ================ Routes ===================
+
 @app.route('/')
 def home():
     return render_template("index.html")
 
-# Route: Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -67,7 +78,6 @@ def register():
 
     return render_template('register.html')
 
-# Route: Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -91,7 +101,6 @@ def login():
 
     return render_template('login.html')
 
-# Route: Dashboard
 @app.route('/dashboard')
 def dashboard():
     if 'user' not in session:
@@ -99,12 +108,65 @@ def dashboard():
         return redirect(url_for('login'))
     return render_template('dashboard.html', user=session['user'])
 
-# Route: Logout
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     flash('Logged out successfully.', 'info')
     return redirect(url_for('login'))
+
+# ========== NEW FEATURES ========= #
+
+@app.route('/submit-report', methods=['GET', 'POST'])
+def submit_report():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        content = request.form.get('content').strip()
+        if content:
+            report = Report(username=session['user'], content=content)
+            db.session.add(report)
+            db.session.commit()
+            flash("Report submitted successfully!", "success")
+            return redirect(url_for('dashboard'))
+        flash("Report cannot be empty.", "warning")
+
+    return render_template('submit_report.html')
+
+@app.route('/view-reports')
+def view_reports():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    reports = Report.query.order_by(Report.timestamp.desc()).all()
+    return render_template('view_reports.html', reports=reports)
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        filename = request.form.get('filename')
+        if filename:
+            new_upload = Upload(username=session['user'], filename=filename)
+            db.session.add(new_upload)
+            db.session.commit()
+            flash('File recorded (simulated).', 'success')
+            return redirect(url_for('my_uploads'))
+        flash('Filename is required.', 'warning')
+
+    return render_template('upload.html')
+
+@app.route('/my-uploads')
+def my_uploads():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    uploads = Upload.query.filter_by(username=session['user']).order_by(Upload.upload_time.desc()).all()
+    return render_template('my_uploads.html', uploads=uploads)
+
+# ===================================
 
 if __name__ == '__main__':
     app.run(debug=True)

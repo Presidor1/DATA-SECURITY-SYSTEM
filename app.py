@@ -88,10 +88,12 @@ def logout():
     flash('Logged out successfully.', 'info')
     return redirect(url_for('login'))
 
-# Initialize DB (only run once in a safe place, or manage with Flask-Migrate)
-@app.before_first_request
-def create_tables():
-    db.create_all()
+# Compatible replacement for @app.before_first_request
+@app.before_request
+def create_tables_once():
+    if not hasattr(app, 'db_initialized'):
+        db.create_all()
+        app.db_initialized = True
 
 if __name__ == '__main__':
     app.run(debug=True)

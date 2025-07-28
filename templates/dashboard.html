@@ -4,24 +4,70 @@
   <meta charset="UTF-8">
   <title>Dashboard – Secured Data System</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .dashboard-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .welcome {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .dashboard-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .dashboard-buttons a {
+      display: block;
+      padding: 15px 25px;
+      background-color: #0066cc;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .dashboard-buttons a:hover {
+      background-color: #004a99;
+    }
+
+    .logout-link {
+      margin-top: 30px;
+      display: block;
+      text-decoration: none;
+      color: #990000;
+      font-weight: bold;
+    }
+
+    .logout-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Welcome, {{ user }}!</h2>
+  <div class="dashboard-container">
+    <div class="welcome">Welcome, {{ user }} 👋</div>
 
-    <p class="alert alert-success">Login successful!<br>
-    This is your secure dashboard. Your credentials are protected with Argon2 key derivation hashing.</p>
-
-    <ul>
-      <li><a href="{{ url_for('upload') }}">📤 Upload a File</a></li>
-      <li><a href="{{ url_for('my_uploads') }}">📁 View My Uploaded Files</a></li>
-      <li><a href="{{ url_for('submit_report') }}">📝 Submit a Confidential Report</a></li>
-      <li><a href="{{ url_for('view_reports') }}">📊 View Submitted Reports (admin only)</a></li>
-    </ul>
-
-    <div class="links">
-      <a href="{{ url_for('logout') }}">🚪 Logout</a>
+    <div class="dashboard-buttons">
+      <a href="{{ url_for('submit_report') }}">📋 Submit Report</a>
+      <a href="{{ url_for('view_reports') }}">🗂️ View Reports</a>
+      <a href="{{ url_for('upload') }}">📤 Upload File</a>
+      <a href="{{ url_for('my_uploads') }}">📁 My Uploads</a>
     </div>
+
+    <a href="{{ url_for('logout') }}" class="logout-link">🚪 Logout</a>
   </div>
 </body>
 </html>

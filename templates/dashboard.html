@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard – Secured Data System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <title>Dashboard – Secured Data System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h2>Welcome, {{ user }}!</h2>
+  <div class="container">
+    <h2>Welcome, {{ user }}!</h2>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+    <p class="alert alert-success">Login successful!<br>
+    This is your secure dashboard. Your credentials are protected with Argon2 key derivation hashing.</p>
 
-        <p>This is your secure dashboard. Your credentials are protected with Argon2 key derivation hashing.</p>
+    <ul>
+      <li><a href="{{ url_for('upload') }}">📤 Upload a File</a></li>
+      <li><a href="{{ url_for('my_uploads') }}">📁 View My Uploaded Files</a></li>
+      <li><a href="{{ url_for('submit_report') }}">📝 Submit a Confidential Report</a></li>
+      <li><a href="{{ url_for('view_reports') }}">📊 View Submitted Reports (admin only)</a></li>
+    </ul>
 
-        <a href="{{ url_for('logout') }}">Logout</a>
+    <div class="links">
+      <a href="{{ url_for('logout') }}">🚪 Logout</a>
     </div>
+  </div>
 </body>
 </html>

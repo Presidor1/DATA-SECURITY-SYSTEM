@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome – Secured Data System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Secured Data System</h1>
+        <p>This system protects user data using the Argon2 Key Derivation Function (KDF).</p>
+
+        <div class="links">
+            <a href="{{ url_for('register') }}">Register</a> |
+            <a href="{{ url_for('login') }}">Login</a>
+        </div>
+    </div>
+</body>
+</html>

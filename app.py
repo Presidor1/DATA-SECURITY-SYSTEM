@@ -1,7 +1,8 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask import Flask, request, render_template, redirect, url_for, flash, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 
@@ -16,11 +17,15 @@ if db_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Upload configuration
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 db = SQLAlchemy(app)
 ph = PasswordHasher()
 
 # ================== Models =====================
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -114,8 +119,7 @@ def logout():
     flash('Logged out successfully.', 'info')
     return redirect(url_for('login'))
 
-# ========== NEW FEATURES ========= #
-
+# ========== REPORT SUBMISSION ========= #
 @app.route('/submit-report', methods=['GET', 'POST'])
 def submit_report():
     if 'user' not in session:
@@ -141,20 +145,32 @@ def view_reports():
     reports = Report.query.order_by(Report.timestamp.desc()).all()
     return render_template('view_reports.html', reports=reports)
 
+# ========== REAL FILE UPLOAD ========= #
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if 'user' not in session:
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        filename = request.form.get('filename')
-        if filename:
-            new_upload = Upload(username=session['user'], filename=filename)
-            db.session.add(new_upload)
-            db.session.commit()
-            flash('File recorded (simulated).', 'success')
-            return redirect(url_for('my_uploads'))
-        flash('Filename is required.', 'warning')
+        if 'file' not in request.files:
+            flash('No file selected.', 'danger')
+            return redirect(request.url)
+
+        file = request.files['file']
+        if file.filename == '':
+            flash('File name is empty.', 'warning')
+            return redirect(request.url)
+
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        new_upload = Upload(username=session['user'], filename=filename)
+        db.session.add(new_upload)
+        db.session.commit()
+
+        flash('File uploaded successfully!', 'success')
+        return redirect(url_for('my_uploads'))
 
     return render_template('upload.html')
 
@@ -165,6 +181,12 @@ def my_uploads():
 
     uploads = Upload.query.filter_by(username=session['user']).order_by(Upload.upload_time.desc()).all()
     return render_template('my_uploads.html', uploads=uploads)
+
+@app.route('/download/<filename>')
+def download(filename):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 # ===================================
 

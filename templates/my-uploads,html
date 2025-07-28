@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Uploads – Secured Data System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2>My Uploaded Files</h2>
+    {% if uploads %}
+      <ul>
+        {% for upload in uploads %}
+          <li>
+            {{ upload.filename }} – uploaded on {{ upload.upload_time }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You haven't uploaded any files yet.</p>
+    {% endif %}
+    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+  </div>
+</body>
+</html>

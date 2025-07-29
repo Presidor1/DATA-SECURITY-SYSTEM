@@ -9,13 +9,21 @@
   <div class="container">
     <h2>My Uploaded Files</h2>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     {% if uploads %}
       <ul>
         {% for upload in uploads %}
           <li>
             {{ upload.filename }} – uploaded on {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}
             &nbsp;|&nbsp;
-            <a href="{{ url_for('download_file', filename=upload.filename) }}" download>Download</a>
+            <a href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
           </li>
         {% endfor %}
       </ul>

@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 import traceback
-import mimetypes  # ✅ Added for MIME type guessing
+import mimetypes
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
@@ -206,7 +206,7 @@ def download(filename):
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ UPDATED ROUTE FOR VIEWING FILES WITH MIME TYPE SUPPORT
+# ✅ UPDATED VIEW FILE ROUTE WITH MIME TYPE
 @app.route('/view/<filename>')
 def view_file(filename):
     if 'user' not in session:
@@ -224,7 +224,7 @@ def view_file(filename):
             app.config['UPLOAD_FOLDER'],
             filename,
             mimetype=mime_type,
-            as_attachment=False  # View in browser
+            as_attachment=False
         )
 
     except Exception as e:
@@ -232,12 +232,13 @@ def view_file(filename):
         flash("File could not be viewed.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ========== Error Handler ========= #
+# ========== ERROR HANDLER ========= #
 @app.errorhandler(500)
 def internal_error(error):
     print("INTERNAL SERVER ERROR:", traceback.format_exc())
     return render_template('500.html'), 500
 
-# ========== Start Server ========= #
+# ========== START SERVER ========= #
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=10000)
+    port = int(os.environ.get('PORT', 10000))  # ✅ Enables Render compatibility
+    app.run(debug=False, host='0.0.0.0', port=port)

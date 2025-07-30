@@ -5,6 +5,7 @@ from argon2.exceptions import VerifyMismatchError
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
+import traceback  # ✅ For debugging
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
@@ -152,25 +153,30 @@ def upload():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file selected.', 'danger')
+        try:
+            if 'file' not in request.files:
+                flash('No file selected.', 'danger')
+                return redirect(request.url)
+
+            file = request.files['file']
+            if file.filename == '':
+                flash('File name is empty.', 'warning')
+                return redirect(request.url)
+
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            new_upload = Upload(username=session['user'], filename=filename)
+            db.session.add(new_upload)
+            db.session.commit()
+
+            flash('File uploaded successfully!', 'success')
+            return redirect(url_for('my_uploads'))
+        except Exception as e:
+            print("UPLOAD ERROR:", traceback.format_exc())
+            flash('Unexpected error during file upload.', 'danger')
             return redirect(request.url)
-
-        file = request.files['file']
-        if file.filename == '':
-            flash('File name is empty.', 'warning')
-            return redirect(request.url)
-
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-
-        new_upload = Upload(username=session['user'], filename=filename)
-        db.session.add(new_upload)
-        db.session.commit()
-
-        flash('File uploaded successfully!', 'success')
-        return redirect(url_for('my_uploads'))
 
     return render_template('upload.html')
 
@@ -179,16 +185,32 @@ def my_uploads():
     if 'user' not in session:
         return redirect(url_for('login'))
 
-    uploads = Upload.query.filter_by(username=session['user']).order_by(Upload.upload_time.desc()).all()
-    return render_template('my_uploads.html', uploads=uploads)
+    try:
+        uploads = Upload.query.filter_by(username=session['user']).order_by(Upload.upload_time.desc()).all()
+        return render_template('my_uploads.html', uploads=uploads)
+    except Exception as e:
+        print("MY UPLOADS ERROR:", traceback.format_exc())
+        flash("Error loading uploads.", "danger")
+        return redirect(url_for('dashboard'))
 
 @app.route('/download/<filename>')
 def download(filename):
     if 'user' not in session:
         return redirect(url_for('login'))
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
-# ===================================
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    except Exception as e:
+        print("DOWNLOAD ERROR:", traceback.format_exc())
+        flash("File could not be downloaded.", "danger")
+        return redirect(url_for('my_uploads'))
 
+# ========== Error Handler ========= #
+@app.errorhandler(500)
+def internal_error(error):
+    print("INTERNAL SERVER ERROR:", traceback.format_exc())
+    return render_template('500.html'), 500
+
+# ========== Start Server ========= #
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=10000)

@@ -24,12 +24,17 @@
         {% for upload in uploads %}
           <li class="upload-card">
             <div class="file-info">
-              <strong>{{ upload.filename }}</strong>
+              <strong>{{ upload.filename }}</strong><br>
               <small>Uploaded on: {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</small>
             </div>
             <div>
               <a class="btn-download" href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
               <a class="btn-download" href="{{ url_for('view_file', filename=upload.filename) }}" target="_blank">View</a>
+
+              <!-- Delete Button -->
+              <form action="{{ url_for('delete_file', upload_id=upload.id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete this file?')">Delete</button>
+              </form>
             </div>
           </li>
         {% endfor %}

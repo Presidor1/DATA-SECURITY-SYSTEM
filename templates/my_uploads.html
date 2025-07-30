@@ -18,19 +18,15 @@
     {% endwith %}
 
     {% if uploads %}
-      <div class="upload-list">
+      <ul class="upload-list">
         {% for upload in uploads %}
-          <div class="upload-card">
-            <div class="file-info">
-              <strong>{{ upload.filename }}</strong>
-              <small>Uploaded: {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</small>
-            </div>
-            <div class="file-action">
-              <a class="btn-download" href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
-            </div>
-          </div>
+          <li class="upload-item">
+            <strong>{{ upload.filename }}</strong><br>
+            <small>Uploaded on: {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</small><br>
+            <a class="button" href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
+          </li>
         {% endfor %}
-      </div>
+      </ul>
     {% else %}
       <p>You haven't uploaded any files yet.</p>
     {% endif %}

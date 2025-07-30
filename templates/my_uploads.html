@@ -9,21 +9,35 @@
   <div class="container">
     <h2>My Uploaded Files</h2>
 
-    {% if uploads and uploads|length > 0 %}
-      <ul>
-        {% for upload in uploads %}
-          <li>
-            {{ upload.filename }} – uploaded on {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}
-            &nbsp;|&nbsp;
-            <a href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
-          </li>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
         {% endfor %}
-      </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% if uploads %}
+      <div class="upload-list">
+        {% for upload in uploads %}
+          <div class="upload-card">
+            <div class="file-info">
+              <strong>{{ upload.filename }}</strong>
+              <small>Uploaded: {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+            </div>
+            <div class="file-action">
+              <a class="btn-download" href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
     {% else %}
       <p>You haven't uploaded any files yet.</p>
     {% endif %}
 
-    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+    <div class="links">
+      <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </div>
   </div>
 </body>
 </html>

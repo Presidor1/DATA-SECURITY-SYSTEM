@@ -21,8 +21,9 @@ body {
   margin: 40px auto;
   background: #fff;
   padding: 30px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.06);
   border-radius: 8px;
+  animation: fadeIn 1s ease-in-out;
 }
 
 /* === HEADER === */
@@ -49,6 +50,16 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 15px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="file"]:focus,
+textarea:focus {
+  border-color: #2c7be5;
+  box-shadow: 0 0 5px rgba(44, 123, 229, 0.3);
+  outline: none;
 }
 
 textarea {
@@ -85,7 +96,7 @@ a.button:hover,
   margin-bottom: 20px;
   border-radius: 4px;
   color: #fff;
-  animation: fadeIn 0.5s ease-in;
+  animation: slideFade 0.5s ease-in-out;
   font-size: 14px;
 }
 
@@ -124,6 +135,14 @@ a.button:hover,
   padding: 20px;
   border-radius: 8px;
   font-size: 16px;
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(44, 123, 229, 0.2);
 }
 
 /* === UPLOAD LIST === */
@@ -142,11 +161,12 @@ a.button:hover,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: box-shadow 0.3s;
+  transition: box-shadow 0.3s, transform 0.2s;
 }
 
 .upload-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .file-info small {
@@ -164,11 +184,12 @@ a.button:hover,
   border: none;
   border-radius: 5px;
   text-decoration: none;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-download:hover {
   background-color: #27ae60;
+  transform: scale(1.05);
 }
 
 /* === MEDIA QUERIES === */
@@ -180,10 +201,24 @@ a.button:hover,
   .feature-grid {
     grid-template-columns: 1fr;
   }
+
+  .upload-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-download {
+    margin-top: 10px;
+  }
 }
 
 /* === ANIMATIONS === */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideFade {
+  from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }

@@ -20,7 +20,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Upload configuration
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -200,7 +201,8 @@ def download(filename):
         return redirect(url_for('login'))
 
     try:
-        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        return send_file(file_path, as_attachment=True)
     except Exception as e:
         print("DOWNLOAD ERROR:", traceback.format_exc())
         flash("File could not be downloaded.", "danger")
@@ -214,15 +216,17 @@ def view_file(filename):
 
     try:
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        print("🔍 VIEWING FILE:", file_path)
 
-        if not os.path.isfile(file_path):
+        if not os.path.exists(file_path):
+            print("⚠️ File does not exist.")
             flash("File does not exist.", "danger")
             return redirect(url_for('my_uploads'))
 
         mime_type, _ = mimetypes.guess_type(file_path)
-        print("🔍 VIEWING FILE:", file_path, "| MIME:", mime_type)
+        print("🧾 MIME TYPE:", mime_type)
 
-        return send_file(file_path, mimetype=mime_type, as_attachment=False)
+        return send_file(file_path, mimetype=mime_type or 'application/octet-stream', as_attachment=False)
 
     except Exception as e:
         print("VIEW FILE ERROR:", traceback.format_exc())

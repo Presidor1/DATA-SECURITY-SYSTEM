@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, session, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, flash, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -20,7 +20,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Upload configuration
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -200,13 +200,13 @@ def download(filename):
         return redirect(url_for('login'))
 
     try:
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+        return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
     except Exception as e:
         print("DOWNLOAD ERROR:", traceback.format_exc())
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ UPDATED VIEW FILE ROUTE WITH MIME TYPE
+# ✅ FINALIZED VIEW FILE ROUTE
 @app.route('/view/<filename>')
 def view_file(filename):
     if 'user' not in session:
@@ -220,12 +220,9 @@ def view_file(filename):
             return redirect(url_for('my_uploads'))
 
         mime_type, _ = mimetypes.guess_type(file_path)
-        return send_from_directory(
-            app.config['UPLOAD_FOLDER'],
-            filename,
-            mimetype=mime_type,
-            as_attachment=False
-        )
+        print("🔍 VIEWING FILE:", file_path, "| MIME:", mime_type)
+
+        return send_file(file_path, mimetype=mime_type, as_attachment=False)
 
     except Exception as e:
         print("VIEW FILE ERROR:", traceback.format_exc())
@@ -240,5 +237,5 @@ def internal_error(error):
 
 # ========== START SERVER ========= #
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))  # ✅ Enables Render compatibility
+    port = int(os.environ.get('PORT', 10000))
     app.run(debug=False, host='0.0.0.0', port=port)

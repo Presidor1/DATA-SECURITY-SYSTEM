@@ -7,7 +7,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>Submit a Confidential Report</h2>
+    <h2>Submit a Report</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -18,12 +18,14 @@
     {% endwith %}
 
     <form method="POST">
-      <label for="content">Report Content:</label><br>
-      <textarea name="content" rows="6" required></textarea><br><br>
+      <label for="content">Report Content:</label>
+      <textarea id="content" name="content" placeholder="Write your report here..." required></textarea>
       <button type="submit">Submit Report</button>
     </form>
 
-    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+    <div class="links">
+      <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </div>
   </div>
 </body>
 </html>

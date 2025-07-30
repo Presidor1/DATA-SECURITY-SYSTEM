@@ -148,7 +148,7 @@ def view_reports():
     reports = Report.query.order_by(Report.timestamp.desc()).all()
     return render_template('view_reports.html', reports=reports)
 
-# ========== REAL FILE UPLOAD ========= #
+# ========== FILE UPLOAD ========= #
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if 'user' not in session:
@@ -208,7 +208,6 @@ def download(filename):
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ FINALIZED VIEW FILE ROUTE
 @app.route('/view/<filename>')
 def view_file(filename):
     if 'user' not in session:
@@ -216,22 +215,42 @@ def view_file(filename):
 
     try:
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        print("🔍 VIEWING FILE:", file_path)
-
         if not os.path.exists(file_path):
-            print("⚠️ File does not exist.")
             flash("File does not exist.", "danger")
             return redirect(url_for('my_uploads'))
 
         mime_type, _ = mimetypes.guess_type(file_path)
-        print("🧾 MIME TYPE:", mime_type)
-
         return send_file(file_path, mimetype=mime_type or 'application/octet-stream', as_attachment=False)
-
     except Exception as e:
         print("VIEW FILE ERROR:", traceback.format_exc())
         flash("File could not be viewed.", "danger")
         return redirect(url_for('my_uploads'))
+
+# ✅ DELETE FILE ROUTE
+@app.route('/delete/<int:upload_id>', methods=['POST'])
+def delete_file(upload_id):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    try:
+        upload = Upload.query.get(upload_id)
+        if not upload or upload.username != session['user']:
+            flash("File not found or unauthorized.", "danger")
+            return redirect(url_for('my_uploads'))
+
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], upload.filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        db.session.delete(upload)
+        db.session.commit()
+
+        flash("File deleted successfully.", "success")
+    except Exception as e:
+        print("DELETE ERROR:", traceback.format_exc())
+        flash("Error deleting file.", "danger")
+
+    return redirect(url_for('my_uploads'))
 
 # ========== ERROR HANDLER ========= #
 @app.errorhandler(500)

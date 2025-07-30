@@ -20,10 +20,15 @@
     {% if uploads %}
       <ul class="upload-list">
         {% for upload in uploads %}
-          <li class="upload-item">
-            <strong>{{ upload.filename }}</strong><br>
-            <small>Uploaded on: {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</small><br>
-            <a class="button" href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
+          <li class="upload-card">
+            <div class="file-info">
+              <strong>{{ upload.filename }}</strong>
+              <small>Uploaded on: {{ upload.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+            </div>
+            <div>
+              <a class="btn-download" href="{{ url_for('download', filename=upload.filename) }}" download>Download</a>
+              <a class="btn-download" href="{{ url_for('static', filename='uploads/' ~ upload.filename) }}" target="_blank">View</a>
+            </div>
           </li>
         {% endfor %}
       </ul>

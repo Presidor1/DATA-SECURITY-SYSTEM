@@ -205,7 +205,7 @@ def download(filename):
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ NEWLY UPDATED VIEW FILE ROUTE (opens in browser)
+# ✅ UPDATED ROUTE FOR VIEWING FILES (in-browser display)
 @app.route('/view/<filename>')
 def view_file(filename):
     if 'user' not in session:

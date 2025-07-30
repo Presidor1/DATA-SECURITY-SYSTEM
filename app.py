@@ -205,13 +205,13 @@ def download(filename):
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ NEWLY ADDED ROUTE FOR VIEWING FILES
+# ✅ NEWLY UPDATED VIEW FILE ROUTE (opens in browser)
 @app.route('/view/<filename>')
 def view_file(filename):
     if 'user' not in session:
         return redirect(url_for('login'))
     try:
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
     except Exception as e:
         print("VIEW FILE ERROR:", traceback.format_exc())
         flash("File could not be viewed.", "danger")

@@ -2,26 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Submit Report – Secure System</title>
+  <title>Submit Report – Secured Data System</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="container">
-    <h2>Submit Confidential Report</h2>
+    <h2>Submit Report</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-      {% endfor %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
     {% endwith %}
 
-    <form action="{{ url_for('report') }}" method="POST">
-      <label for="report">Your Report:</label><br>
-      <textarea name="report" rows="8" required></textarea><br><br>
+    <form method="POST">
+      <label for="content">Your Report:</label>
+      <textarea id="content" name="content" placeholder="Write your report here..." required></textarea>
       <button type="submit">Submit</button>
     </form>
 
-    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+    <div class="links">
+      <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </div>
   </div>
 </body>
 </html>

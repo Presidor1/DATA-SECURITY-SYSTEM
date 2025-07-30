@@ -5,7 +5,8 @@ from argon2.exceptions import VerifyMismatchError
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
-import traceback  # ✅ For debugging
+import traceback
+import mimetypes  # ✅ Added for MIME type guessing
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
@@ -205,13 +206,27 @@ def download(filename):
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ UPDATED ROUTE FOR VIEWING FILES (in-browser display)
+# ✅ UPDATED ROUTE FOR VIEWING FILES WITH MIME TYPE SUPPORT
 @app.route('/view/<filename>')
 def view_file(filename):
     if 'user' not in session:
         return redirect(url_for('login'))
+
     try:
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        if not os.path.isfile(file_path):
+            flash("File does not exist.", "danger")
+            return redirect(url_for('my_uploads'))
+
+        mime_type, _ = mimetypes.guess_type(file_path)
+        return send_from_directory(
+            app.config['UPLOAD_FOLDER'],
+            filename,
+            mimetype=mime_type,
+            as_attachment=False  # View in browser
+        )
+
     except Exception as e:
         print("VIEW FILE ERROR:", traceback.format_exc())
         flash("File could not be viewed.", "danger")

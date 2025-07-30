@@ -7,7 +7,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>Upload File</h2>
+    <h2>Upload a File</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -17,13 +17,14 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST" enctype="multipart/form-data">
-      <label for="file">Choose file:</label><br>
-      <input type="file" id="file" name="file" required><br><br>
+    <form method="POST" enctype="multipart/form-data" class="form-box">
+      <label for="file">Choose File:</label>
+      <input type="file" id="file" name="file" required>
+
       <button type="submit">Upload</button>
     </form>
 
-    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+    <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
   </div>
 </body>
 </html>

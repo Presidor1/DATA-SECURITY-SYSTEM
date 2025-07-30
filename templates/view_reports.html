@@ -18,14 +18,15 @@
     {% endwith %}
 
     {% if reports %}
-      <ul>
+      <div class="report-list">
         {% for report in reports %}
-          <li class="report-box">
-            <strong>{{ report.username }}</strong> on {{ report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}:
+          <div class="report-card">
+            <strong>User:</strong> {{ report.username }}<br>
+            <strong>Date:</strong> {{ report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
             <p>{{ report.content }}</p>
-          </li>
+          </div>
         {% endfor %}
-      </ul>
+      </div>
     {% else %}
       <p>No reports submitted yet.</p>
     {% endif %}

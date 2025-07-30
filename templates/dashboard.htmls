@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard – Secured Data System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, {{ user }}</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="feature-grid">
+      <a class="feature-card" href="{{ url_for('submit_report') }}">
+        Submit Report
+      </a>
+      <a class="feature-card" href="{{ url_for('view_reports') }}">
+        View Reports
+      </a>
+      <a class="feature-card" href="{{ url_for('upload') }}">
+        Upload File
+      </a>
+      <a class="feature-card" href="{{ url_for('my_uploads') }}">
+        My Uploads
+      </a>
+      <a class="feature-card" href="{{ url_for('logout') }}">
+        Logout
+      </a>
+    </div>
+  </div>
+</body>
+</html>

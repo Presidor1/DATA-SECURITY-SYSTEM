@@ -148,7 +148,7 @@ def view_reports():
     reports = Report.query.order_by(Report.timestamp.desc()).all()
     return render_template('view_reports.html', reports=reports)
 
-# ========== FILE UPLOAD ========= #
+# ========== MULTIPLE FILE/FOLDER UPLOAD ========= #
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if 'user' not in session:
@@ -156,25 +156,30 @@ def upload():
 
     if request.method == 'POST':
         try:
-            if 'file' not in request.files:
-                flash('No file selected.', 'danger')
+            if 'files' not in request.files:
+                flash('No files selected.', 'danger')
                 return redirect(request.url)
 
-            file = request.files['file']
-            if file.filename == '':
-                flash('File name is empty.', 'warning')
+            files = request.files.getlist('files')
+            if not files or files[0].filename == '':
+                flash('No files selected.', 'warning')
                 return redirect(request.url)
 
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+            for file in files:
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
-            new_upload = Upload(username=session['user'], filename=filename)
-            db.session.add(new_upload)
+                    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                    file.save(filepath)
+
+                    new_upload = Upload(username=session['user'], filename=filename)
+                    db.session.add(new_upload)
+
             db.session.commit()
-
-            flash('File uploaded successfully!', 'success')
+            flash(f'{len(files)} file(s) uploaded successfully!', 'success')
             return redirect(url_for('my_uploads'))
+
         except Exception as e:
             print("UPLOAD ERROR:", traceback.format_exc())
             flash('Unexpected error during file upload.', 'danger')

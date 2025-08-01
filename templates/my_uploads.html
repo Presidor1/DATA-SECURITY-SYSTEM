@@ -18,6 +18,25 @@
       {% endif %}
     {% endwith %}
 
+    <!-- Upload Form -->
+    <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+      <label for="file">Upload Files or Folders:</label><br>
+      <input 
+        type="file" 
+        name="file" 
+        id="file" 
+        multiple 
+        webkitdirectory 
+        mozdirectory 
+        directory 
+        required
+      >
+      <button type="submit">Upload</button>
+      <p><small>You can select individual files or an entire folder.</small></p>
+    </form>
+
+    <hr>
+
     <!-- Upload List -->
     {% if uploads %}
       <ul class="upload-list">

@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload Folder – Secured Data System</title>
+  <title>Upload – Secured Data System</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="container">
-    <h2>Upload a Folder</h2>
+    <h2>Upload Files or Folder</h2>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,9 +19,9 @@
     {% endwith %}
 
     <form method="POST" enctype="multipart/form-data" class="upload-form">
-      <label for="file">Choose a folder:</label>
-      <input type="file" id="file" name="files" webkitdirectory directory multiple required>
-      <button type="submit">Upload Folder</button>
+      <label for="file">Choose file(s) or a folder (optional):</label>
+      <input type="file" id="file" name="file" multiple webkitdirectory directory>
+      <button type="submit">Upload</button>
     </form>
 
     <div class="links">

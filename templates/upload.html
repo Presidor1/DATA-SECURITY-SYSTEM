@@ -7,7 +7,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>Upload Files or Folder</h2>
+    <h2>Upload Files or a Folder</h2>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,8 +19,12 @@
     {% endwith %}
 
     <form method="POST" enctype="multipart/form-data" class="upload-form">
-      <label for="file">Choose file(s) or a folder (optional):</label>
-      <input type="file" id="file" name="file" multiple webkitdirectory directory>
+      <label>Choose individual file(s):</label>
+      <input type="file" name="files" multiple><br><br>
+
+      <label>OR Upload a whole folder:</label>
+      <input type="file" name="files" webkitdirectory directory><br><br>
+
       <button type="submit">Upload</button>
     </form>
 

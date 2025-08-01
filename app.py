@@ -43,7 +43,7 @@ class Report(db.Model):
 class Upload(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False)
-    filename = db.Column(db.String(120), nullable=False)
+    filename = db.Column(db.String(300), nullable=False)
     upload_time = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Run create_all() only once
@@ -156,28 +156,34 @@ def upload():
 
     if request.method == 'POST':
         try:
-            if 'files' not in request.files:
-                flash('No files selected.', 'danger')
+            if 'file' not in request.files:
+                flash('No file input found.', 'danger')
                 return redirect(request.url)
 
-            files = request.files.getlist('files')
+            files = request.files.getlist('file')
             if not files or files[0].filename == '':
                 flash('No files selected.', 'warning')
                 return redirect(request.url)
 
+            saved_count = 0
             for file in files:
                 if file and file.filename:
-                    filename = secure_filename(file.filename)
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    # Preserve folder structure using full relative path
+                    relative_path = secure_filename(file.filename.replace("\\", "/"))
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], relative_path)
 
-                    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                    file.save(filepath)
+                    # Ensure parent folders exist
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-                    new_upload = Upload(username=session['user'], filename=filename)
+                    file.save(file_path)
+
+                    # Save in DB (filename includes folder path)
+                    new_upload = Upload(username=session['user'], filename=relative_path)
                     db.session.add(new_upload)
+                    saved_count += 1
 
             db.session.commit()
-            flash(f'{len(files)} file(s) uploaded successfully!', 'success')
+            flash(f'{saved_count} file(s) uploaded successfully!', 'success')
             return redirect(url_for('my_uploads'))
 
         except Exception as e:
@@ -200,7 +206,7 @@ def my_uploads():
         flash("Error loading uploads.", "danger")
         return redirect(url_for('dashboard'))
 
-@app.route('/download/<filename>')
+@app.route('/download/<path:filename>')
 def download(filename):
     if 'user' not in session:
         return redirect(url_for('login'))
@@ -213,7 +219,7 @@ def download(filename):
         flash("File could not be downloaded.", "danger")
         return redirect(url_for('my_uploads'))
 
-@app.route('/view/<filename>')
+@app.route('/view/<path:filename>')
 def view_file(filename):
     if 'user' not in session:
         return redirect(url_for('login'))
@@ -231,7 +237,6 @@ def view_file(filename):
         flash("File could not be viewed.", "danger")
         return redirect(url_for('my_uploads'))
 
-# ✅ DELETE FILE ROUTE
 @app.route('/delete/<int:upload_id>', methods=['POST'])
 def delete_file(upload_id):
     if 'user' not in session:

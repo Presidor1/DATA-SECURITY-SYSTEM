@@ -156,11 +156,11 @@ def upload():
 
     if request.method == 'POST':
         try:
-            if 'file' not in request.files:
+            if 'files' not in request.files:
                 flash('No file input found.', 'danger')
                 return redirect(request.url)
 
-            files = request.files.getlist('file')
+            files = request.files.getlist('files')
             if not files or files[0].filename == '':
                 flash('No files selected.', 'warning')
                 return redirect(request.url)
@@ -168,16 +168,10 @@ def upload():
             saved_count = 0
             for file in files:
                 if file and file.filename:
-                    # Preserve folder structure using full relative path
                     relative_path = secure_filename(file.filename.replace("\\", "/"))
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], relative_path)
-
-                    # Ensure parent folders exist
                     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
                     file.save(file_path)
-
-                    # Save in DB (filename includes folder path)
                     new_upload = Upload(username=session['user'], filename=relative_path)
                     db.session.add(new_upload)
                     saved_count += 1
